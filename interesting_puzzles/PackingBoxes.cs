@@ -1,76 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-struct Cord
-{
-	int _x;
-	int _y;
-
-	public int X{ get { return _x; } }
-
-	public int Y{ get { return _y; } }
-
-	public Cord (int x, int y)
-	{
-		_x = x;
-		_y = y;
-	}
-}
-
-class Cell
-{
-	int _length;
-	int _width;
-	Cord _refPoint;
-
-	public Cord TopLeft{ get { return new Cord (_refPoint.X, _refPoint.X + _length); } }
-	/*public Cord BottomLeft{get{return _refPoint.X}}
-	public Cord TopRight{get;}
-	public Cord BottomRight{get;}*/
-
-	public int LeftBound{ get { return _refPoint.X; } }
-
-	public int TopBound{ get { return _refPoint.X + _length; } }
-
-    public int Length { get { return _length; } }
-
-    public int Width { get { return _width; } }
-
-	public Cell (int length, int width, Cord start)
-	{
-		_length = length;
-		_width = width;
-		_refPoint = start;
-	}
-}
-
-/*class Cell
-{
-    int _length;
-    int _width;
-    Cord _refPoint;
-
-    public Cord TopLeft { get { return new Cord(_refPoint.X, _refPoint.X + _length); } }
-    /*public Cord BottomLeft{get{return _refPoint.X}}
-    public Cord TopRight{get;}
-    public Cord BottomRight{get;}
-
-    public int LeftBound { get { return _refPoint.X; } }
-
-    public int TopBound { get { return _refPoint.X + _length; } }
-
-    public int Length { get { return _length; } }
-
-    public int Width { get { return _width; } }
-
-    public Cell(int length, int width, Cord start)
-    {
-        _length = length;
-        _width = width;
-        _refPoint = start;
-    }
-}*/
-
 class Cell
 {
     int _length;
@@ -87,29 +17,30 @@ class Cell
 
 enum CellState
 {
-	OFF = true,
-	ON = false
+    FULL = true,
+    EMPTY = false
 };
 
-class StateCell:Cell
+class StateCell : Cell
 {
-	CellState _state;
+    CellState _state;
 
     public CellState State
     {
         get { return _state; }
     }
 
-	public StateCell (int length, int width, CellState state):base(length,width)
-	{
+    public StateCell(int length, int width, CellState state)
+        : base(length, width)
+    {
         _state = state;
-	}
+    }
 }
 
-class StateCellNode: StateCell
+class StateCellNode : StateCell
 {
-   StateCell _top;
-   StateCell _right;
+    StateCell _top;
+    StateCell _right;
 
     public StateCell Top
     {
@@ -123,118 +54,141 @@ class StateCellNode: StateCell
         set { _right = value; }
     }
 
-    public StateCellNode(int length, int width,CellState initState)
+    public StateCellNode(int length, int width, CellState initState)
         : base(length, width, initState)
     {
     }
 }
 
-/*class GrowingBlob
-{
-    StateCellNode _root;
-
-    public StateCellNode Root
-    {
-        get {return _root;}
-    }
-
-    public GrowingBlob(int length, int width)
-    {
-        _root = new StateCellNode(length, width, new Cord(0, 0), CellState.OFF);
-    }
-
-    public bool Add(int length, int width)
-    {
-        //if root is unfilled . fill it.
-        // if root is filled. go right until you find a cell that is OFF.
-        // check if the cell can hold
-        if(_root.State == CellState.OFF)
-
-    }
-
-    private void SplitNode(StateCellNode node,int top, int right)
-    {
-        
-    }
-}*/
-
 class DropBox
 {
-	StateCell _rootBox;
-	int _length;
-	int _width;
-	bool _isStable;
+    StateCellNode _rootBox;
+    int _length;
+    int _width;
+    bool _isStable;
 
-	public bool IsStable
-	{
-		get{return _isStable;}
-	}
+    public bool IsStable
+    {
+        get { return _isStable; }
+    }
 
-	public DropBox(Tuple<int,int>[] boxes,int length,int width){
-		boxes = new List<StateCell>();
-		_length = length;
-		_width = width;
+    public DropBox(Tuple<int, int>[] boxes, int length, int width)
+    {
+        _length = length;
+        _width = width;
         _isStable = true;
-        _rootBox = new StateCell(_length, _width, CellState.ON);
+        _rootBox = new StateCell(_length, _width, CellState.EMPTY);
         // keep adding boxes until the dropbox(container) is stable.
-        for(int i = 0; i < boxes.Length && _isStable; i++)
+        for (int i = 0; i < boxes.Length && _isStable; i++)
         {
             Add(box);
         }
-	}
+    }
 
+    //check if the box can be fit?
+    //check if root is unfilled.
+    //yes
+    //split the node
+    //fill it
+    //no
+    //check top(recurse)
+    //check bottom(recurse)
     private void Add(Tuple<int, int> box)
     {
-        //check if the box can be fit?
-        // if it can be fit 
-        if(_rootBox == null)
-            _rootBox = new 
+        
+        int length = box.Item1;
+        int width = box.Item2;
+        StateCellNode foundBox = FindEmptyBox(_rootBox, length, width);
+        if (foundBox == null)
+        {
+            _isStable = false;
+            return;
+        }
+        FillEmptyBox(foundBox, length, width);
+
     }
 
-    private StateCellNode FindEmptyBox(int length,int width)
+    private StateCellNode FindEmptyBox(StateCellNode root, int length, int width)
     {
+        StateCellNode foundBox = null;
+        if (root == null)
+            return foundBox;
+        if (root.State == CellState.EMPTY)
+        {
+            int cellLength = root.Length;
+            int cellWidth = root.Width;
+            if (Math.Max(cellLength, cellWidth) >= Math.Max(length, width) && Math.Min(cellLength, cellWidth) >= Math.Min(length, width))
+                return root;
+        }
+        foundBox = FindEmptyBox(root.Top, length, width);
+        if (foundBox == null)
+            foundBox = FindEmptyBox(root.Right, length, width);
+        return foundBox;
     }
 
-    private void SplitBox()
+    private bool FillEmptyBox(StateCellNode box, int length, int width)
     {
+        //right cut 
+        StateCellNode rightBox = null;
+        int rightLeftOver = box.Width - width;
+        box.Width = units;
+        if (rightLeftOver > 0)
+            rightBox = new StateCellNode(box.Length, rightLeftOver, CellState.Empty);
+        box.Right = rightBox;
+
+        //top cut
+        StateCellNode topBox = null;
+        int topLeftOver = box.Length - length;
+        box.Length = length;
+        if (topLeftOver > 0)
+            topBox = new StateCellNode(topLeftOver,box.Width, leftOver, CellState.Empty);
+        box.Top = topBox;
+
+        box.State = CellState.Full;
     }
 
-	private bool ComposeBox(Tuple<int,int>[] boxes)
-	{
-		foreach(Tuple<int,int> box in boxes){
-		}
-	}
-}
-
-abstract class  GrowthStrategy
-{
-
+    public void Dump()
+    {
+        //Dump the state of the tree.
+        //Future:change this to dump the state of box in stderr.
+        throw new NotImplementedException();
+    }
 }
 
 class Solution
 {
-	public static void Main(){
-		//Cord[] boxes = {new Cord(8,8),new Cord(4,3), new Cord(4,3)};
-		Tuple<int,int>[] boxes = {new Tuple<int,int>(8,8),new Tuple<int, int>(4,3),new Tuple<int,int>(4,3)};
-		int minLength = 8;
-		int maxLength = 16;
-		int minWidth = 8;
-		int maxWidth = 14;
-		int bestArea = 0;
-		for(int l=minLength; l <= maxLength; l++)
-		{
-			for(int w=minWidth;w <= maxWidth; w++)
-			{
-				DropBox dp = new DropBox(boxes,l,w);
-				if(dp.IsStable){
-					bestArea = Math.Min(bestArea,l*w);
-					if(l == minLength)
-						maxWidth = w;
-					else
-						maxLength = l;
-				}
-			}
-		}
-		Console.WriteLine("{0}",bestArea);
-	}
+    public static void Main()
+    {
+        //Cord[] boxes = {new Cord(8,8),new Cord(4,3), new Cord(4,3)};
+        Tuple<int, int>[] boxes = { new Tuple<int, int>(8, 8), new Tuple<int, int>(4, 3), new Tuple<int, int>(4, 3) };
+        int minLength = 8;
+        int maxLength = 16;
+        int minWidth = 8;
+        int maxWidth = 14;
+        int bestArea = 0;
+
+        int dropBoxLength = minLength;
+        int dropBoxWidth = maxWidth;
+        int bestArea = maxWidth * maxLength;
+        while (dropBoxLength <= maxLength && dropBoxWidth >= minWidth)
+        {
+            if (dropBoxLength * dropBoxWidth < bestArea)
+            {
+                DropBox dp = new DropBox(boxes, dropBoxLength, dropBoxWidth);
+                if (dp.IsStable)
+                {
+                    dropBoxWidth--;
+                    continue;
+                }
+                else
+                {
+                    dropBoxLength++;
+                    continue;
+                }
+            }
+            dropBoxWidth--;
+        }
+       
+        Console.WriteLine("{0}", bestArea);
+    }
 }
