@@ -159,15 +159,19 @@ class File:
 
 
 def _can_combine_transactions(transA,transB):
-    """
+    '''
         Renames,moves & updates occur at different times but it can be combined into one transaction
-    """
+    '''
     if len(transA) != len(transB):
-        return false
-    for i in range(transA):
-        actionA,timeA,nameA,contenthashA = eventA = transA[0]
-        actionB,timeB,nameB,contenthashB = eventB = transB[0]
-        if(actionA != 'DEL' and actionB != 'ADD'):
+        return False
+    for i in range(len(transA)):
+        actionA,timeA,nameA,contenthashA = eventA = transA[i].split(' ')
+        actionB,timeB,nameB,contenthashB = eventB = transB[i].split(' ')
+        filenameA = get_file_name(nameA)
+        parentnameA = get_parent_name(nameA)
+        filenameB = get_file_name(nameB)
+        parentnameB = get_parent_name(nameB)
+        if(actionA != 'DEL' or actionB != 'ADD'):
             return False 
         if(int(timeB) - int(timeA) > 1):
             return False #assuming that the timeinterval should be really short. if not, give the benefit of doubt as different transactions
@@ -175,8 +179,8 @@ def _can_combine_transactions(transA,transB):
         isupdate = _is_update((filenameA,parentnameA,contenthashA),(filenameB,parentnameB,contenthashB))
         ismove = _is_move((filenameA,parentnameA,contenthashA),(filenameB,parentnameB,contenthashB))
         if(not(isrename or isupdate or ismove)):
-            return false
-    return true
+            return False
+    return True
 
 def _is_move(eventA,eventB):
     filenameA,parentnameA,contenthashA = eventA
@@ -186,7 +190,7 @@ def _is_move(eventA,eventB):
 def _is_update(eventA,eventB):
     filenameA,parentnameA,contenthashA = eventA
     filenameB,parentnameB,contenthashB = eventB
-     return True if (parentnameA == parentnameB and filenameA == filenameB and contenthashA != contenthashB) else False
+    return True if (parentnameA == parentnameB and filenameA == filenameB and contenthashA != contenthashB) else False
 
 def _is_rename(eventA,eventB):
     filenameA,parentnameA,contenthashA = eventA
@@ -194,29 +198,36 @@ def _is_rename(eventA,eventB):
     return True if (parentnameA == parentnameB and filenameA != filenameB and contenthashA == contenthashB) else False
 
 def get_parent_name(name):
-    pass
+    return name[:name.rindex('/')]
 
 def get_file_name(name):
-    pass
+    return name[name.rindex(r'/'):]
 
 
 def solution(events):
     transactions = []
     count = 0
     prevtime = None
+    #STEP1: standardize events by clustering
     for event in events:
         action,time,name,contenthash = event.split(' ')
-        if time == prevtime:
+        if time == prevtime:#Cluster events based on time
             transactions[count-1].append((event))
         else:
             transactions.append([(event)])
             count += 1
         prevtime = time
-    while(i < len(transactions)-1):
-        if can_combine_transaction(transactions[i],transactions[i+1]):
-            combine(i,i+1)
+    #STEP2: futher combine transactions by actions such as add,delete,rename,move,update
+    i=0
+    while(i < count-1):
+        if _can_combine_transactions(transactions[i],transactions[i+1]):
+            trans = transactions.pop(i+1)
+            transactions[i].extend(trans)
             i+=1
         i+=1
+    print transactions
+    #process thru all the list and record only the first action
+    for tran in transactions:
 
 def test_sample_cases():
     events = ['ADD 1282352346 /test -','ADD 1282353016 /test/1.txt f2fa762f','DEL 1282354012 /test -','DEL 1282354012 /test/1.txt f2fa762f','ADD 1282354013 /test2 -','ADD 1282354013 /test2/1.txt f2fa762f']
