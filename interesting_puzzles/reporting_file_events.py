@@ -30,14 +30,16 @@ Renamed dir /test -> /test2.'''
     # contenthash - identifies the constituents. for directory, it would be the hash of objects inside that directory
     # dont store time
 class File:
-    def __init__(self,name,parentname,time,contenthash):
+    def __init__(self,name,parentname,time,contenthash,ignore_create_action=False):
         self.created_time = time
         self.modified_time = time
         self.name = name
         self.parentname = parentname
         self.content_hash = contenthash
-        self.status = "c"
-        self.events = [("c",time)]
+        self.events = []
+        if not ignore_create_action:
+            self.status = "c"
+            self.events.append(("c",time))
     def delete(self,time):
         self.status = "d"
         self.events.append(("d",self.time))
@@ -59,104 +61,6 @@ class File:
         self.modified_time = time
     def __hash__(self):
         return int(str(self.created_time) + str(name))
-
-'''class DropBox:
-    def __init__(self):
-        #making a strong assumption that .DP will not be used by any other file
-        self._ft = {}
-        self._dels = []#tracks deletes at a transaction level
-        self._adds = []#tracks adds at a transaction level
-
-    def add(self,name,time,contenthash):
-        if len(_adds) > 0 and _adds[0][0] != time:
-            process_lasttransaction()#getting into a new trans; so process last tran
-        self._adds.append((time,name,contenthash))
-        if len(_dels) > 0:#track only when there are deletes going on so this add could be a part of the different trans
-            self._adds.append((time,name,contenthash))
-        else:#just process it
-            object_name = get_object_name(name)
-            parent_name = get_parent_name(name)
-            newFile = File(object_name,parent_name,time,contenthash)
-            self._ft.add(object_name,newFile)
-
-    def del(self,name,time,contenthash):
-        if len(_dels) > 0 and _dels[0][0] != time:
-            process_lasttransaction()#getting into a new trans; so process last tran
-        self._dels.append((time,name,contenthash))
-
-
-    def _process_lasttransaction(self):
-        if(len(_dels) == 0):
-            return
-        if(len(_dels) == len(_adds) and _dels[0][0] == _adds[0]0]): #belong to a single transaction , either move,rename or update
-            affected_del = _dels[0]#you only care about the first affected object since this is part of the same transaction
-            affected_add = _adds[0]
-            if _is_move(affect_del,affected_add):
-                time,name,contenthash = affected_add
-                object_name = get_object_name(affected_del[1])
-                parentname = get_parent_name(name)
-                obj = self._ft[object_name]
-                obj.move(time,parentname)
-            elif _is_rename(affected_del,affected_add):
-                time,name,contenthash = affected_add
-                object_name = get_object_name(affected_del[1])
-                newname = get_object_name(name)
-                obj = self._ft[object_name]
-                obj.rename(time,newname)
-            elif _is_update(affected_del,affected_add):
-                time,name,contenthash = affected_add
-                object_name = get_object_name(affected_del[1])
-                obj = self._ft[object_name]
-                obj.update(time,contenthash)
-            else:
-                print 'Unfamilar condition that the program is not trained to handle'
-                raise
-        #individual delete actions; do not belong to a transaction.
-        for time,name,contenthash in _dels:
-            object_name = get_object_name(name)
-            obj = self._ft[object_name]
-            obj.delete(time)
-        #individual add actions; do not belong to a transaction.
-        for time,name,contenthash in _adds:
-            object_name = get_object_name(name)
-            parent_name = get_parent_name(name)
-            newFile = File(object_name,parent_name,time,contenthash)
-            self._ft.add(object_name,newFile)
-        self._dels = list()
-        self._adds = list()
-
-    def _is_move(del_action,add_action):
-        #move will result in a different parent but will have the same name & contenthash
-        oldname,_,oldcontenthash = del_action
-        newname,_,newcontenthash = add_action
-        old_parent_name = get_parent_name(oldname)
-        new_parent_name = get_parent_name(newname)
-        old_file_name = get_object_name(oldname)
-        new_file_name = get_object_name(newname)
-        return True if (old_parent_name != new_parent_name and old_file_name == new_file_name and oldcontenthash == newcontenthash) else False
-
-    def _is_rename(del_action,add_action):
-        #rename will result in a different name but will retain the parent & contenthash
-        oldname,_,oldcontenthash = del_action
-        newname,_,newcontenthash = add_action
-        old_parent_name = get_parent_name(oldname)
-        new_parent_name = get_parent_name(newname)
-        old_file_name = get_object_name(oldname)
-        new_file_name = get_object_name(newname)
-        return True if (old_parent_name == new_parent_name and old_file_name != new_file_name and oldcontenthash == newcontenthash) else False 
-
-    def _is_update(del_action,add_action):
-        #rename will result in a contenthash but will retain the parent & name
-        oldname,_,oldcontenthash = del_action
-        newname,_,newcontenthash = add_action
-        old_parent_name = get_parent_name(oldname)
-        new_parent_name = get_parent_name(newname)
-        old_file_name = get_object_name(oldname)
-        new_file_name = get_object_name(newname)
-        return True if (old_parent_name == new_parent_name and old_file_name == new_file_name and oldcontenthash != newcontenthash) else False'''
-
-
-
 
 def _can_combine_transactions(transA,transB):
     '''
@@ -219,15 +123,55 @@ def solution(events):
         prevtime = time
     #STEP2: futher combine transactions by actions such as add,delete,rename,move,update
     i=0
+    file_table = {}
     while(i < count-1):
         if _can_combine_transactions(transactions[i],transactions[i+1]):
-            trans = transactions.pop(i+1)
-            transactions[i].extend(trans)
+            event1 = transactions[i][0]
+            event2 = transactions[i+1][0]
+            action1,time1,name1,contenthash1 = event1.split(' ') 
+            action2,time2,name2,contenthash2 = event2.split(' ') 
+            filename1 = get_file_name(name1)
+            parentname1 = get_parent_name(name1)
+            filename2 = get_file_name(name2)
+            parentname2 = get_parent_name(name2)
+
+            file_to_change = None
+            if filename1 in file_table:
+                file_to_change = file_table[filename1]
+            else:
+                file_to_change = File(filename1,parentname1,time,contenthash1,ignore_create_action=True)
+                file_table[filename1] = file_to_change
+
+            if _is_rename((filename1,parentname1,contenthash1),(filename2,parentname2,contenthash2)):
+                file_to_change.rename(time,filename2)
+            elif _is_move((filename1,parentname1,contenthash1),(filename2,parentname2,contenthash2)):
+                file_to_change.move(time,parentname2)
+            elif _is_update((filename1,parentname1,contenthash1),(filename2,parentname2,contenthash2)):
+                file_to_change(time,contenthash2)
+            else:
+                print 'Program terminates because it could not handle this condition'
+                raise
             i+=1
+        else:
+            for event in transactions[i]:
+                action,time,name,contenthash = event.split(' ') 
+                parentname = get_parent_name(name)
+                filename = get_file_name(name)
+                if action == 'ADD':
+                    new_file = File(filename,parentname,time,contenthash)
+                    file_table[filename] = new_file
+                elif action == 'DEL':
+                    if filename in file_table:
+                        existing_file = file_table[filename]
+                        existing_file.delete(time)
+                    else:#The file could already exist in the dropbox folder. in that case we just create the filename w\o recording the create action.
+                        new_file = File(filename,parentname,time,contenthash,ignore_create_action=True)
+                        file_table[filename] = new_file
+                        new_file.delete(time)
         i+=1
-    print transactions
-    #process thru all the list and record only the first action
-    for tran in transactions:
+    for _,o_file in file_table.iteritems():
+        print o_file.events
+
 
 def test_sample_cases():
     events = ['ADD 1282352346 /test -','ADD 1282353016 /test/1.txt f2fa762f','DEL 1282354012 /test -','DEL 1282354012 /test/1.txt f2fa762f','ADD 1282354013 /test2 -','ADD 1282354013 /test2/1.txt f2fa762f']
