@@ -42,12 +42,63 @@ coding-six-hours
 cookies
 mexican-coke'''
 
+'''
+budget - total calories of the selected items should be zero.
+every stage either includes its cost and added to the load, or does not participate in the total load.
+The final winner will find that adding its cost will satisfy the budget
 
+uniquness:
+    Does not have a weight and a benefit. It only has weight. so you just have to find a bag that holds weights that negate each other. You should return the bag that satisfies this condition.;
+'''
+count = 0
+items=[]
+diets = []
+def memoizer(f):
+    cache = {}
+    def _f(*args):
+        global count
+        try:
+            count += 1
+            level,total,_ = args
+            return cache[(level,total)]
+        except KeyError:
+            count -= 1
+            level,total,_ = args
+            value = cache[(level,total)] = f(*args)
+            return value
+        except TypeError:
+            count -= 1
+            return f(*args)
+    return _f
 
+@memoizer
+def best_diet(level,total_calories,prescribed_diet=[]):
+    if level < 0:
+        return (False,prescribed_diet)
+    diet_name,calories = diets[level]
+    if calories+total_calories == 0:
+        prescribed_diet.append(diet_name)
+        return (True,prescribed_diet)
+    is_gooddiet_possible,possible_prescribed_diet = best_diet(level-1,total_calories,list(prescribed_diet)) 
+    if is_gooddiet_possible:
+        return (True,possible_prescribed_diet)
+    else:
+        prescribed_diet.append(diet_name)
+        return best_diet(level-1,total_calories+calories,list(prescribed_diet))
 
-
-
-
-
-
-
+if __name__ == '__main__':
+    with open(r'test_dropbox_diet.in','rU') as fhandle:
+        n = int(fhandle.readline())
+        for _ in range(n):
+            diet_name,calories = fhandle.readline().strip().split(' ')
+            diets.append((diet_name,int(calories)))
+    #items = [802,421,143,-302,137,316,1512
+    #items = [140,110]
+    #items = [-5,-5,10]
+    is_gooddiet_possible,prescribed_diet = best_diet(len(diets)-1,0,[])
+    if is_gooddiet_possible:
+        prescribed_diet.sort()
+        for diet_name in prescribed_diet:
+            print diet_name
+    else:
+        print 'no solution'
