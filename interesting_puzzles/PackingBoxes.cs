@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 /// <Summary>
 /// Objective:
@@ -193,16 +194,48 @@ class DropBox
         //Dump the state of the tree.
         //Future:change this to dump the state of box in stderr.
         if(!debug)
-            InOrderDump(_rootBox, 0);
+            PreOrderDump(_rootBox, 0);
+        DrawBox(_rootBox,string.Empty);
     }
 
-    private void InOrderDump(FileNode root, int level)
+    private void PreOrderDump(FileNode root, int level)
     {
         if (root == null)
             return;
         Console.WriteLine("{2}:({0},{1})", root.Length, root.Width, level);
-        InOrderDump(root.Top, level + 1);
-        InOrderDump(root.Right, level + 1);
+        PreOrderDump(root.Top, level + 1);
+        PreOrderDump(root.Right, level + 1);
+    }
+
+    private void DrawBox(FileNode root,string nodeType){
+        if(root == null)
+            return;
+        if(nodeType == "right")
+            Console.WriteLine(DrawRectangle(root.Width,root.Length));
+        else
+            Console.Write(DrawRectangle(root.Width,root.Length));
+        DrawBox(root.Top,"top");
+        DrawBox(root.Right,"right");
+    }
+
+    static string DrawRectangle(int width,int length){
+        StringBuilder sb = new StringBuilder();
+        string first = "+" + " -".StringMultiplier(width-1)+ " + ";
+        sb.AppendLine(first);
+        for(int i=0; i<length-1;i++)
+            sb.AppendLine("|"+" ".StringMultiplier(2*width-1)+"|");
+        sb.Append(first);
+        return sb.ToString();
+    }
+}
+
+internal static class StringExtensions
+{
+    public static string StringMultiplier(this string value,int count){
+        StringBuilder sb = new StringBuilder(count);
+        for(int i=0;i<count;i++)
+            sb.Append(value);
+        return sb.ToString();
     }
 }
 
@@ -215,10 +248,10 @@ class Solution
         int maxLength = 0;
         int minWidth = int.MaxValue;
         int maxWidth = 0;
-        bool DEBUG = false;
+        bool DEBUG = true;
 
-        FileStream inputStream = new FileStream("packing_boxes_sample_input.txt", FileMode.Open, FileAccess.Read);
-        StreamReader sr = new StreamReader(inputStream);
+        //FileStream inputStream = new FileStream("packing_boxes_sample_input.txt", FileMode.Open, FileAccess.Read);
+        //StreamReader sr = new StreamReader(inputStream);
         //int n = int.Parse(sr.ReadLine());
         int n = int.Parse(Console.ReadLine());
         Tuple<int, int>[] files = new Tuple<int, int>[n];
