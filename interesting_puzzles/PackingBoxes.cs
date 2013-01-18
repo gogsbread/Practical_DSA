@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using System.IO;
 
 /// <Summary>
 /// Objective:
@@ -189,13 +189,53 @@ class DropBox
         box.State = FileState.FULL;
     }
 
-    public void Dump(bool debug=false)
+    public string Dump(bool debug=false)
     {
         //Dump the state of the tree.
-        //Future:change this to dump the state of box in stderr.
-        if(!debug)
+        if (debug)
+        {
+            Console.WriteLine("--DEBUG--");
+            Console.WriteLine("({0},{1})", _length, _width);
             PreOrderDump(_rootBox, 0);
-        DrawBox(_rootBox,string.Empty);
+        }
+        List<Tuple<int,int,int>> files =  new List<Tuple<int,int,int>>();
+        InOrderCollect(_rootBox, files, 0);
+        return DrawRectangles(files, _length);
+    }
+
+    private void InOrderCollect(FileNode root, List<Tuple<int,int,int>> files, int workingHeight)
+    {
+        if (root != null)
+        {
+            workingHeight += root.Length;
+            InOrderCollect(root.Top, files, workingHeight);
+            files.Add(new Tuple<int, int, int>(workingHeight, workingHeight - root.Length + 1, root.Width));
+            workingHeight -= root.Length;
+            InOrderCollect(root.Right, files, workingHeight);
+        }
+    }
+
+    private string DrawRectangles(List<Tuple<int, int, int>> files,int height)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (int i = height; i > 0; i--)
+        {
+            foreach (Tuple<int, int, int> box in files)
+            {
+                if (box.Item1 == i || box.Item2 == i)
+                {
+                    sb.Append(string.Format("{0}{1} {0}", "+", (box.Item3-2>0)?" -".StringMultiplier(box.Item3-2):string.Empty));
+                    continue;
+                }
+                if (i > box.Item2 && box.Item1 > i)
+                {
+                    sb.Append(string.Format("{0}{1} {0}", "|", (box.Item3 - 2 > 0) ? "  ".StringMultiplier(box.Item3-2) : string.Empty));
+                    continue;
+                }
+            }
+            sb.AppendLine(); 
+        }
+        return sb.ToString();
     }
 
     private void PreOrderDump(FileNode root, int level)
@@ -206,34 +246,14 @@ class DropBox
         PreOrderDump(root.Top, level + 1);
         PreOrderDump(root.Right, level + 1);
     }
-
-    private void DrawBox(FileNode root,string nodeType){
-        if(root == null)
-            return;
-        if(nodeType == "right")
-            Console.WriteLine(DrawRectangle(root.Width,root.Length));
-        else
-            Console.Write(DrawRectangle(root.Width,root.Length));
-        DrawBox(root.Top,"top");
-        DrawBox(root.Right,"right");
-    }
-
-    static string DrawRectangle(int width,int length){
-        StringBuilder sb = new StringBuilder();
-        string first = "+" + " -".StringMultiplier(width-1)+ " + ";
-        sb.AppendLine(first);
-        for(int i=0; i<length-1;i++)
-            sb.AppendLine("|"+" ".StringMultiplier(2*width-1)+"|");
-        sb.Append(first);
-        return sb.ToString();
-    }
 }
 
 internal static class StringExtensions
 {
-    public static string StringMultiplier(this string value,int count){
+    public static string StringMultiplier(this string value, int count)
+    {
         StringBuilder sb = new StringBuilder(count);
-        for(int i=0;i<count;i++)
+        for (int i = 0; i < count; i++)
             sb.Append(value);
         return sb.ToString();
     }
@@ -248,10 +268,9 @@ class Solution
         int maxLength = 0;
         int minWidth = int.MaxValue;
         int maxWidth = 0;
-        bool DEBUG = true;
 
-        //FileStream inputStream = new FileStream("packing_boxes_sample_input.txt", FileMode.Open, FileAccess.Read);
-        //StreamReader sr = new StreamReader(inputStream);
+        FileStream inputStream = new FileStream("packing_boxes_sample_input.txt", FileMode.Open, FileAccess.Read);
+        StreamReader sr = new StreamReader(inputStream);
         //int n = int.Parse(sr.ReadLine());
         int n = int.Parse(Console.ReadLine());
         Tuple<int, int>[] files = new Tuple<int, int>[n];
@@ -276,6 +295,7 @@ class Solution
         int bestArea = maxWidth * maxLength;
         int bestWidth = maxWidth;
         int bestLength = maxLength;
+        string treeDump = string.Empty;
         //heuristics as described in summary at top
         while (dropBoxLength <= maxLength && dropBoxWidth >= minWidth)
         {
@@ -287,13 +307,8 @@ class Solution
                     bestArea = dropBoxLength * dropBoxWidth;
                     bestWidth = dropBoxWidth;
                     bestLength = dropBoxLength;
-                    if (DEBUG)
-                    {
-                        Console.WriteLine("--DEBUG--");
-                        Console.WriteLine("({0},{1})", dropBoxLength, dropBoxWidth);
-                        dp.Dump();
-                    }
                     dropBoxWidth--;
+                    treeDump = dp.Dump();
                     continue;
                 }
                 else
@@ -305,6 +320,7 @@ class Solution
             dropBoxWidth--;
         }
         //Console.WriteLine ("({1},{2}),{0}", bestArea, bestLength, bestWidth);
+        Console.Out.WriteLine(treeDump);
         Console.WriteLine("{0}", bestArea);
     }
 }
