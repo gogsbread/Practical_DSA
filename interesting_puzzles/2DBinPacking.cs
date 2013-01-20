@@ -4,6 +4,9 @@ using System.Text;
 using System.IO;
 
 /// <Summary>
+/// Puzzle:
+///	Adopted from Dropbox website https://www.dropbox.com/jobs/challenges
+///
 /// Objective:
 ///     To find the best way to pack all files into a dropbox such that the dropbox size is minimum.
 /// ThoughProcess:
