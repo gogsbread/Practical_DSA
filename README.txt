@@ -37,3 +37,9 @@ NOTE:Most of these algorithms are for academic purposes, although some have been
 ./interesting_puzzles
 	./interesting_puzzles/JosephusPuzzle.cs
 	./interesting_puzzles/tower_of_boxes.py
+	./interesting_puzzles/2DBinPacking.cs
+	./interesting_puzzles/JosephusPuzzle.cs
+	./interesting_puzzles/fix_your_diet.py
+	Tests/
+		./interesting_puzzles/ftest_2d_binpacking.in
+		./interesting_puzzles/ftest_fix_your_diet.in
