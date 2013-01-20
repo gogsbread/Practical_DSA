@@ -24,7 +24,7 @@ NOTE:Most of these algorithms are for academic purposes, although some have been
 	./dynamic_programming/assembly_scheduling.py
 	./dynamic_programming/knapsack.py
 	./dynamic_programming/LCS.py
-	./dynamic_programming/Helpers
+	./dynamic_programming/Tests
 		./dynamic_programming/Helpers/knapsack_big_test.txt
 		./dynamic_programming/Helpers/knapsack_test.txt
 ./elementary_practice_problems
