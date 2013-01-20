@@ -80,15 +80,11 @@ def best_diet(level,total_calories,prescribed_diet=[]):
         return best_diet(level-1,total_calories+calories,list(prescribed_diet))
 
 if __name__ == '__main__':
-    '''with open(r'test_dropbox_diet.in','rU') as fhandle:
+    with open(r'Tests/test_fix_your_diet.in','rU') as fhandle:
         n = int(fhandle.readline())
         for _ in range(n):
             diet_name,calories = fhandle.readline().strip().split(' ')
-            diets.append((diet_name,int(calories)))'''
-    n = int(raw_input())
-    for _ in range(n):
-         diet_name,calories = raw_input().strip().split(' ')
-         diets.append((diet_name,int(calories)))
+            diets.append((diet_name,int(calories)))
     prescribed_diet = best_diet(len(diets)-1,0,[])
     if prescribed_diet:
         prescribed_diet.sort()

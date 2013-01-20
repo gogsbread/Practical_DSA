@@ -2,80 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-///
-//Packing your Dropbox
-//When you're working with petabytes of data, you have to store files wherever they can fit. All of us here at Dropbox are always searching for more ways to efficiently pack data into smaller and more manageable chunks. The fun begins when you bend the rules a little bit and visualize it in two dimensions.
-//
-//You'll be given a list of rectangular "files" that you'll need to pack into as small a "Dropbox" as possible. The dimensions of each file will be specified by a tuple (width, height), both of which will be integers. The output of your function should be the area of the smallest rectangular Dropbox that can enclose all of them without any overlap. Files can be rotated 90° if it helps. Bonus points if you can draw pictures of the winning configurations along the way. While drawing pictures, any files sharing dimensions should be considered identical/interchangeable.
-//
-//Input
-//Your program must read a small integer N (1 <= N <= 100) from STDIN representing the maximum number of files to consider, followed by the width and height of each file, one per line.
-//
-//Output
-//Output should be simply be the area of the smallest containing Dropbox. If you want to print pretty pictures, send that to stderr. Only the output on stdout will be judged.
-//
-//Sample Input
-//
-//3
-//8 8
-//4 3
-//3 4
-//Sample Output
-//
-//88
-//
-//
-//
-//
-//Sample Output (stderr, optional)
-//
-//11x8:
-//+ - - - - - - + + - +
-//|             | |   |
-//|             | |   |
-//|             | + - +
-//|             | + - +
-//|             | |   |
-//|             | |   |
-//+ - - - - - - + + - +
-//
-//8x11:
-//+ - - - - - - +
-//|             |
-//|             |
-//|             |
-//|             |
-//|             |
-//|             |
-//+ - - - - - - +
-//+ - - + + - - +
-//|     | |     |
-//+ - - + + - - +
-//
-//11x8:
-//+ - + + - - - - - - +
-//|   | |             |
-//|   | |             |
-//+ - + |             |
-//+ - + |             |
-//|   | |             |
-//|   | |             |
-//+ - + + - - - - - - +
-//
-//8x11:
-//+ - - + + - - +
-//|     | |     |
-//+ - - + + - - +
-//+ - - - - - - +
-//|             |
-//|             |
-//|             |
-//|             |
-//|             |
-//|             |
-//+ - - - - - - +
 
-///
 /// <Summary>
 /// Objective:
 ///     To find the best way to pack all files into a dropbox such that the dropbox size is minimum.
@@ -342,12 +269,14 @@ class Solution
         int minWidth = int.MaxValue;
         int maxWidth = 0;
 
-        int n = int.Parse(Console.ReadLine());
+        FileStream inputStream = new FileStream("Tests/test_2d_binpacking.in", FileMode.Open, FileAccess.Read);
+        StreamReader sr = new StreamReader(inputStream);
+        int n = int.Parse(sr.ReadLine());
         Tuple<int, int>[] files = new Tuple<int, int>[n];
         //create a tuple of length&width representing all files.
         for (int i = 0; i < n; i++)
         {
-            string[] inputs = Console.ReadLine().Split(' ');
+            string[] inputs = sr.ReadLine().Split(' ');
             int templength = int.Parse(inputs[0]);
             int tempwidth = int.Parse(inputs[1]);
             int length = Math.Max(templength, tempwidth);
@@ -389,8 +318,8 @@ class Solution
             dropBoxWidth--;
         }
         //Console.WriteLine ("({1},{2}),{0}", bestArea, bestLength, bestWidth);
-        Console.Out.WriteLine(treeDump);
         Console.WriteLine("{0}", bestArea);
+        Console.Error.WriteLine(treeDump);
     }
 }
 
