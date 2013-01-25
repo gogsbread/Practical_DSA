@@ -9,4 +9,4 @@ def Sum(filePath):
     return total
 
 if __name__ == '__main__':
-    print Sum('./Helpers/temp.txt')
+    print Sum('./Tests/temp.txt')
