@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<project name="LRUCache" default="build" basedir=".">
+	<description>LRUCache using min heap as backing datastructure</description>
+	<target name="build" description="builds release configuration for source code">
+		<mcs target="exe" output="LRUCache.exe" debug="false">
+			<sources>
+				<includes name="LRUCache.cs"/>
+			</sources>
+		</mcs>
+	</target>
+</project>
+		
